@@ -1,11 +1,9 @@
 import time
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from datetime import datetime
 import os.path
 import shutil
-from tkinter import *
-from tkinter import Tk
+import GUI
 
 
 # Clase que controla los eventos.
@@ -20,8 +18,8 @@ class MyHandler(FileSystemEventHandler):
         print(f'Se agregó un archivo en: {DownloadDir}')  # 1
 
         if ExtensionDelArchivo == ".tmp" or ExtensionDelArchivo == ".crdownload":
-            MyHandler.on_modified(event)  # Si el archivo se descarga muy rapido el programa lo detecta como creado
-            # por eso lo enviamos a esta funcion que controla el comportamiento del programa
+            MyHandler.on_modified(event)  # Si el archivo todavia no se descargo completamente todavia, se lo envia a
+            #la funcion on_modified para que se la continue monitoreando hasta que finalice la descarga
 
         else:
             for i in range(len(DirArr)):
@@ -30,7 +28,7 @@ class MyHandler(FileSystemEventHandler):
                     MoverArchivo(event, DirArr[i])
                     time.sleep(timeToWait)
                     BorrarSiExiste(event.src_path, DirArr[i] + "/" + nombre)
-                    break # Solo quiero que esto se realice una sola vez
+                    break  # Quiero que esto se realice una sola vez
 
     def on_modified(self, event):
         Modify = True
@@ -93,57 +91,25 @@ def BorrarSiExiste(path, dirMovido):  # path = direccion de descargas    ///    
                     os.remove(path)
 
 
-# --------------------------------------------------GUI-----------------------------------------------------------------
-
-#Unico proposito de la GUI es dar feedback al usuario de que el programa se inicia correctamente ya que en caso contrario
-#habria que revisar la lista de procesos abiertos para verificar que se haya abierto
-def Start():
-    Observer.schedule(MyHandler, DownloadDir, recursive=False)  # ACA DETERMINAMOS LA CARPETA A OBSERVAR
-    print("Programa inciado...")
-
-    Observer.start()
-
-    Boton_Start = Button(text="Programa iniciado", width=15, height=2, background="darkblue",
-                         foreground="white") \
-        .place(x=85, y=125)
-
-
-def GUI():
-    root = Tk()
-    root.geometry("250x300")
-    root.title("Organizador Automatico")
-
-    Bievenido = Label(text="Bienvenido").place(x=100, y=100)
-    Boton_Start = Button(root, text="Comenzar", command=Start, width=10, height=2, background="darkgreen",
-                         foreground="white") \
-        .place(x=85, y=125)
-
-    Boton_Stop = Boton_Start = Button(root, text="Esconder", command=root.withdraw, width=7, height=2,
-                                      background="darkred",
-                                      foreground="white") \
-        .place(x=85, y=195)
-
-    root.mainloop()
-
 # ----------------------------------------------------PRINCIPAL---------------------------------------------------------
 
 
 if __name__ == "__main__":
     # Destinos comunes
-    DownloadDir = "C:/Users/Joaquin/Documents/Descargas Temp"
-    ProgramDir = "C:/Users/Joaquin/Downloads/Programas"
-    RarDir = "C:/Users/Joaquin/Downloads/.Rar"
-    PdfDir = "C:/Users/Joaquin/Downloads/PDF"
-    PyDir = "C:/Users/Joaquin/Downloads/Python"
-    ImgDir = "C:/Users/Joaquin/Pictures"
-    TorrentDir = "C:/Users/Joaquin/Downloads/Torrents"
+    DownloadDir = "C:/Users/Joaquin/Documents/Descargas Temp"  #  <---| Este es el destino de la carpeta a observar
+    ProgramDir  = "C:/Users/Joaquin/Downloads/Programas"
+    RarDir      = "C:/Users/Joaquin/Downloads/.Rar"
+    PdfDir      = "C:/Users/Joaquin/Downloads/PDF"
+    PyDir       = "C:/Users/Joaquin/Downloads/Python"
+    ImgDir      = "C:/Users/Joaquin/Pictures"
+    TorrentDir  = "C:/Users/Joaquin/Downloads/Torrents"
 
     # Definimos los tipos de archivos segun como terminan.
-    rarType = ".rar", ".zip", ".7-zip"
-    imgType = ".jpg", ".jpeg", ".png", ".psd", ".gif", ".webm", ".mp4", ".mp3", ".mpeg", ".wmv", ".webp", ".jepg", ".jfif"
+    rarType     = ".rar", ".zip", ".7-zip"
+    imgType     = ".jpg", ".jpeg", ".png", ".psd", ".gif", ".webm", ".mp4", ".mp3", ".mpeg", ".wmv", ".webp", ".jepg", ".jfif"
     programType = ".exe", ".jar", ".tar", ".msi", ".iso"
-    pyType = ".py", "pyw"
-    pdfType = ".pdf", ".txt", ".ppt", ".doc", ".docx", ".docs", ".xml", "xlsx"
+    pyType      = ".py", "pyw"
+    pdfType     = ".pdf", ".txt", ".ppt", ".doc", ".docx", ".docs", ".xml", "xlsx", "csv"
     torrentType = ".torrent"
 
     # Arreglos con los tipos de archivo y direcciones para facil acceso.
@@ -152,5 +118,4 @@ if __name__ == "__main__":
 
     # Estructura general del programa. T0do esto de abajo es requerimiento para que 'Watchdog' funcione correctamente
     MyHandler = MyHandler()
-    Observer = Observer()
-    gui = GUI()
+    gui = GUI.GUI(MyHandler, DownloadDir)
